@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Countdown Timer</title>
+<title>Persistent Countdown Timer</title>
 <style>
     body, html {
         height: 100%;
@@ -56,6 +56,7 @@
     <div>
         <input type="datetime-local" id="datetime-input">
         <button onclick="startCountdown()">Start</button>
+        <button onclick="resetCountdown()">Reset</button>
     </div>
     <div id="countdown" class="countdown-container">
         <div class="time-section">
@@ -78,18 +79,23 @@
 </div>
 
 <script>
+let interval;
+
 function startCountdown() {
+    const input = document.getElementById('datetime-input').value;
+    localStorage.setItem('countdownDate', input);
+    runCountdown(input);
+}
+
+function runCountdown(endTime) {
     const daysSpan = document.getElementById('days');
     const hoursSpan = document.getElementById('hours');
     const minutesSpan = document.getElementById('minutes');
     const secondsSpan = document.getElementById('seconds');
 
-    const input = document.getElementById('datetime-input').value;
-    const endTime = new Date(input).getTime();
-
     function updateCountdown() {
         const now = new Date().getTime();
-        const distance = endTime - now;
+        const distance = new Date(endTime).getTime() - now;
 
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -108,7 +114,26 @@ function startCountdown() {
     }
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
+    clearInterval(interval);
+    interval = setInterval(updateCountdown, 1000);
+}
+
+function resetCountdown() {
+    clearInterval(interval);
+    localStorage.removeItem('countdownDate');
+    document.getElementById('datetime-input').value = '';
+    document.getElementById('days').textContent = '00';
+    document.getElementById('hours').textContent = '00';
+    document.getElementById('minutes').textContent = '00';
+    document.getElementById('seconds').textContent = '00';
+}
+
+window.onload = function() {
+    const savedDate = localStorage.getItem('countdownDate');
+    if (savedDate) {
+        document.getElementById('datetime-input').value = savedDate;
+        runCountdown(savedDate);
+    }
 }
 </script>
 </body>
